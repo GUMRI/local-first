@@ -16,7 +16,9 @@ import { wrappedKeyCompressionStorage } from 'rxdb/plugins/key-compression';
 import {
   RxCollection,
   RxDatabase,
+  RxJsonSchema,
   RxReactivityFactory,
+  RxSchema,
   addRxPlugin,
   createRxDatabase,
 } from 'rxdb/plugins/core';
@@ -132,11 +134,11 @@ export class DatabaseService {
    
   }
 
-  getCollection(name: (keyof  typeof this.db.collections)): RxCollection | undefined {
+  getCollection(name: (keyof  typeof this.db.collections)): RxCollection {
     return this.db.collections[name];
   }
 
-  getCollectionSchema(name: (keyof  typeof this.db.collections)): any | undefined {
+  getCollectionSchema(name: (keyof  typeof this.db.collections)): RxJsonSchema<any> {
     return this.getCollection(name)?.schema.jsonSchema;
   }
 }

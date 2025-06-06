@@ -1,0 +1,261 @@
+<!-- Cell Renderer Component Template -->
+<div class="cell-renderer" [class.edit-mode]="isEditing()" [class.invalid]="!isValid()">
+  @if (isEditing()) {
+    <div class="edit-container">
+      @switch (editorConfig.type) {
+        
+        <!-- Text Input -->
+        @case ('input') {
+          <mat-form-field appearance="outline" class="cell-editor">
+            <input 
+              matInput 
+              [value]="internalValue()"
+              (input)="onValueChange($any($event.target).value)"
+              (keydown)="onKeyDown($event)"
+              (blur)="onEditComplete()"
+              [type]="field.type === 'number' ? 'number' : 'text'"
+              [placeholder]="field.name"
+              autocomplete="off">
+            @if (validationError()) {
+              <mat-error>{{ validationError() }}</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <!-- Textarea -->
+        @case ('textarea') {
+          <mat-form-field appearance="outline" class="cell-editor textarea-editor">
+            <textarea 
+              matInput 
+              [value]="field.type === 'object' ? getObjectDisplay() : (internalValue() || '')"
+              (input)="onValueChange($any($event.target).value)"
+              (keydown)="onKeyDown($event)"
+              (blur)="onEditComplete()"
+              [placeholder]="field.name"
+              rows="3"
+              autocomplete="off">
+            </textarea>
+            @if (validationError()) {
+              <mat-error>{{ validationError() }}</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <!-- Select Dropdown -->
+        @case ('select') {
+          <mat-form-field appearance="outline" class="cell-editor">
+            <mat-select 
+              [value]="internalValue()"
+              (selectionChange)="onValueChange($event.value)"
+              [placeholder]="field.name">
+              @for (option of editorConfig.options; track option) {
+                <mat-option [value]="option">{{ option }}</mat-option>
+              }
+            </mat-select>
+            @if (validationError()) {
+              <mat-error>{{ validationError() }}</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <!-- DateTime Picker -->
+        @case ('datetime') {
+          <mat-form-field appearance="outline" class="cell-editor">
+            <input 
+              matInput 
+              [matDatepicker]="picker"
+              [value]="getDateValue()"
+              (dateChange)="onDateChange($event.value)"
+              [placeholder]="field.name"
+              readonly>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            @if (validationError()) {
+              <mat-error>{{ validationError() }}</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <!-- Toggle Switch -->
+        @case ('toggle') {
+          <div class="toggle-editor">
+            <mat-slide-toggle 
+              [checked]="internalValue()"
+              (change)="onValueChange($event.checked)">
+              {{ field.name }}
+            </mat-slide-toggle>
+          </div>
+        }
+
+        <!-- File Upload -->
+        @case ('file') {
+          <div class="file-editor">
+            <input 
+              type="file"
+              (change)="onFileSelect($event)"
+              [accept]="editorConfig.accept || '*'"
+              [multiple]="editorConfig.multiple || false"
+              #fileInput
+              style="display: none;">
+            <button 
+              mat-stroked-button 
+              (click)="fileInput.click()"
+              type="button">
+              <mat-icon>upload_file</mat-icon>
+              Choose File
+            </button>
+            @if (internalValue()) {
+              <span class="file-name">{{ internalValue().name || internalValue() }}</span>
+            }
+          </div>
+        }
+
+        <!-- Default fallback -->
+        @default {
+          <mat-form-field appearance="outline" class="cell-editor">
+            <input 
+              matInput 
+              [value]="internalValue()"
+              (input)="onValueChange($any($event.target).value)"
+              (keydown)="onKeyDown($event)"
+              (blur)="onEditComplete()"
+              [placeholder]="field.name"
+              autocomplete="off">
+            @if (validationError()) {
+              <mat-error>{{ validationError() }}</mat-error>
+            }
+          </mat-form-field>
+        }
+      }
+
+      <div class="edit-actions">
+        <button 
+          mat-icon-button 
+          (click)="onEditComplete()"
+          matTooltip="Save changes"
+          color="primary">
+          <mat-icon>check</mat-icon>
+        </button>
+        <button 
+          mat-icon-button 
+          (click)="onEditCancel()"
+          matTooltip="Cancel editing">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- Display Mode -->
+    <div class="display-container" (dblclick)="onEditStart()">
+      @switch (field.type) {
+        
+        <!-- Boolean Display -->
+        @case ('boolean') {
+          <div class="boolean-display">
+            <mat-icon [class.true-icon]="value" [class.false-icon]="!value">
+              {{ value ? 'check_circle' : 'radio_button_unchecked' }}
+            </mat-icon>
+            <span>{{ value ? 'True' : 'False' }}</span>
+          </div>
+        }
+
+        <!-- Date Display -->
+        @case ('date') {
+          <div class="date-display">
+            <mat-icon class="date-icon">event</mat-icon>
+            <span>{{ displayValue() }}</span>
+          </div>
+        }
+
+        <!-- Array Display -->
+        @case ('array') {
+          <div class="array-display">
+            @if (Array.isArray(value) && value.length > 0) {
+              <div class="array-items">
+                @for (item of value; track $index) {
+                  <mat-form-field appearance="outline" class="array-item-field">
+                    <input 
+                      matInput 
+                      [value]="item"
+                      (input)="updateArrayItem($index, $any($event.target).value)"
+                      [placeholder]="'Item ' + ($index + 1)">
+                  </mat-form-field>
+                  <button 
+                    mat-icon-button 
+                    (click)="removeArrayItem($index)"
+                    matTooltip="Remove item"
+                    color="warn">
+                    <mat-icon>remove_circle</mat-icon>
+                  </button>
+                }
+              </div>
+              <button 
+                mat-stroked-button 
+                (click)="addArrayItem()"
+                class="add-item-btn">
+                <mat-icon>add</mat-icon>
+                Add Item
+              </button>
+            } @else {
+              <span class="empty-array">Empty Array</span>
+              <button 
+                mat-stroked-button 
+                (click)="addArrayItem()"
+                class="add-item-btn">
+                <mat-icon>add</mat-icon>
+                Add First Item
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Object Display -->
+        @case ('object') {
+          <div class="object-display">
+            <mat-icon class="object-icon">data_object</mat-icon>
+            <span class="object-preview" [matTooltip]="getObjectDisplay()">
+              {{ displayValue() }}
+            </span>
+          </div>
+        }
+
+        <!-- Number Display -->
+        @case ('number') {
+          <div class="number-display">
+            <span class="number-value">{{ displayValue() }}</span>
+          </div>
+        }
+
+        <!-- String Display -->
+        @case ('string') {
+          <div class="string-display">
+            <span class="string-content" [matTooltip]="displayValue()">
+              {{ displayValue() }}
+            </span>
+          </div>
+        }
+
+        @default {
+          <div class="text-display">
+            <span class="text-content" [matTooltip]="displayValue()">
+              {{ displayValue() }}
+            </span>
+            @if (field.ref) {
+              <mat-icon class="ref-icon" [matTooltip]="'References ' + field.ref">link</mat-icon>
+            }
+          </div>
+        }
+      }
+
+      <!-- Null/Empty indicator -->
+      @if (value === null || value === undefined || value === '') {
+        <span class="null-indicator">NULL</span>
+      }
+
+      <!-- Edit hint -->
+      @if (!editMode) {
+        <mat-icon class="edit-hint" matTooltip="Double-click to edit">edit</mat-icon>
+      }
+    </div>
+  }
+</div>

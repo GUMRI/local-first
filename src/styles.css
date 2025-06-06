@@ -2,3 +2,24 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+  
+  /* Ensure content doesn't get hidden behind status bar */
+  .ion-page {
+    padding-bottom: var(--studio-status-bar-height);
+  }
+
+
+  :root {
+    --studio-status-height: 24px;
+    --studio-status-background: #fff;
+    --studio-status-border: #e0e0e0;
+    --studio-status-text: #666;
+    --studio-mono-font: 'Courier New', Courier, monospace;
+  }
+  body, html, app-root {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+  }

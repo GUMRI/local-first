@@ -24,3 +24,19 @@ export type TRxDatabase = RxDatabase<
     unknown,
     Signal<unknown>
 >;
+
+
+
+export type CollectionNames = keyof TCollections;
+
+export interface CollectionQueryOptions {
+  skip?: number;
+  limit?: number;
+  sort?: Array<{
+    [key: string]: 'asc' | 'desc'
+  }>;
+  selector?: Record<string, any>;
+}
+
+export type CollectionDocType<T extends CollectionNames> = 
+  TCollections[T] extends RxCollection<infer D> ? D : never;

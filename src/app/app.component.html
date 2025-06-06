@@ -1,1 +1,26 @@
-<router-outlet></router-outlet>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>rx studio </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ion-toolbar>
+    <ion-segment [value]="collections[0].name">
+      @for (collection of collections; track collection.name) {
+
+      <ion-segment-button [value]="collection.name">
+        <ion-label>{{ collection.name }}</ion-label>
+      </ion-segment-button>
+      }
+    </ion-segment>
+  </ion-toolbar>
+  <ion-segment-view>
+    @for (collection of collections; track collection.name) {
+
+    <ion-segment-content [id]="collection.name">
+      <app-dynamic-table [collection]="collection" />
+    </ion-segment-content>
+
+    }
+  </ion-segment-view>
+</ion-content>
