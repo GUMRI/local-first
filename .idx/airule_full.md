@@ -10,7 +10,7 @@
 src/
 ├── app/
 │   ├── pages/               # standalone pages
-│   ├── shared/              # reusable components, pipes
+│   ├── common/              # reusable components, pipes
 │   ├── core/
 │   │   ├── services/        # business logic services
 │   │   │   └── user.service.ts
